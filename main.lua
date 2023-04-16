@@ -2,15 +2,16 @@ local originalGetgenv = getgenv
 local originalSyn = originalGetgenv().syn
 local originalRconsoleprint = originalGetgenv().rconsoleprint
 
-if originalSyn then
-    originalGetgenv().syn = nil
+local function getOriginalSyn()
+    return originalSyn
 end
 
-if originalRconsoleprint then
-    originalGetgenv().rconsoleprint = nil
+local function getOriginalRconsoleprint()
+    return originalRconsoleprint
 end
 
-local Serializer = loadstring(game:HttpGet("https://raw.githubusercontent.com/NotDSF/leopard/main/rbx/leopard-syn.lua"))()
+local Serializer = loadstring(game:HttpGet("path/to/Serializer.lua"))()
+
 local methods = {
     HttpGet = true,
     HttpGetAsync = true,
@@ -55,7 +56,10 @@ __namecall = hookmetamethod(game, "__namecall", newcclosure(function(self, ...)
     local method = getnamecallmethod()
 
     if methods[method] then
-        hidden[printFnName]("game:%s(%s)\n\n", method, hidden[SerializerName].FormatArguments(...))
+        local serializedArgs = Serializer.FormatArguments(...)
+        if serializedArgs then
+            hidden[printFnName]("game:%s(%s)\n\n", method, serializedArgs)
+        end
     end
 
     return __namecall(self, ...)
@@ -63,13 +67,17 @@ end))
 
 local getrawmetatableHook = setHidden(function(obj)
     if obj == syn.request then
-        local fakeMetatable = {} -- Create a fake metatable
+        local fakeMetatable = {}
         return fakeMetatable
     end
     return getrawmetatable(obj)
 end)
 
 local synReqHookName = setHidden(function(req)
+    if not req or type(req) ~= "table" then
+        error("Invalid input for synReqHookName")
+    end
+
     local mt = hidden[getrawmetatableHook](req)
     local response = syn.oth.get_root_callback()(req)
 
@@ -97,6 +105,9 @@ local getgcHook = setHidden(function()
     end
     return result
 end)
+
+local is_synapse_function = is_synapse_function or function() return false end
+local getgc = getgc or function() return {} end
 
 local isSynapseFunctionHook = setHidden(function(fn)
     if hidden[fn] then
