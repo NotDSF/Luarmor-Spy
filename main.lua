@@ -21,19 +21,15 @@ local methods = {
 }
 
 local function printf(...)
-    if originalRconsoleprint then
-        return originalRconsoleprint(string.format(...))
-    else
-        print(string.format(...))
-    end
+    return originalRconsoleprint and originalRconsoleprint(string.format(...)) or print(string.format(...))
 end
 
-local randomName = function()
+local function randomName()
     return "fn_" .. tostring(math.random(100000, 999999))
 end
 
 local hidden = setmetatable({}, {__index = _G})
-local setHidden = function(fn)
+local function setHidden(fn)
     local name = randomName()
     hidden[name] = fn
     return name
