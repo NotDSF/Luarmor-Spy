@@ -1,4 +1,4 @@
-local originalGetgenv = getgenv
+local originalGetgenv = getgenv or function() return _G end
 local originalSyn = originalGetgenv().syn
 local originalRconsoleprint = originalGetgenv().rconsoleprint
 
@@ -21,7 +21,9 @@ local methods = {
 }
 
 local function printf(...)
-    return originalRconsoleprint(string.format(...))
+    if originalRconsoleprint then
+        return originalRconsoleprint(string.format(...))
+    end
 end
 
 local randomName = function()
@@ -51,19 +53,21 @@ local getgenvHook = setHidden(function()
     return customGetgenv
 end)
 
-local __namecall
-__namecall = hookmetamethod(game, "__namecall", newcclosure(function(self, ...)
-    local method = getnamecallmethod()
+if hookmetamethod then
+    local __namecall
+    __namecall = hookmetamethod(game, "__namecall", newcclosure(function(self, ...)
+        local method = getnamecallmethod()
 
-    if methods[method] then
-        local serializedArgs = Serializer.FormatArguments(...)
-        if serializedArgs then
-            hidden[printFnName]("game:%s(%s)\n\n", method, serializedArgs)
+        if methods[method] then
+            local serializedArgs = Serializer.FormatArguments(...)
+            if serializedArgs then
+                hidden[printFnName]("game:%s(%s)\n\n", method, serializedArgs)
+            end
         end
-    end
 
-    return __namecall(self, ...)
-end))
+        return __namecall(self, ...)
+    end))
+end
 
 local getrawmetatableHook = setHidden(function(obj)
     if obj == syn.request then
@@ -79,15 +83,18 @@ local synReqHookName = setHidden(function(req)
     end
 
     local mt = hidden[getrawmetatableHook](req)
-    local response = syn.oth.get_root_callback()(req)
 
-    if not mt then
-        hidden[printFnName]("syn.request(%s)\n\nResponse Data: %s\n\n", hidden[SerializerName].Serialize(req), hidden[SerializerName].Serialize(response))
+    if syn and syn.oth and syn.oth.get_root_callback then
+        local response = syn.oth.get_root_callback()(req)
+
+        if not mt then
+            hidden[printFnName]("syn.request(%s)\n\nResponse Data: %s\n\n", hidden[SerializerName].Serialize(req), hidden[SerializerName].Serialize(response))
+            return response
+        end
+
+        hidden[printFnName]("Luarmor Internal\nResponse Data: %s\n\n", hidden[SerializerName].Serialize(response))
         return response
     end
-
-    hidden[printFnName]("Luarmor Internal\nResponse Data: %s\n\n", hidden[SerializerName].Serialize(response))
-    return response
 end)
 
 if originalSyn then
@@ -184,4 +191,3 @@ local scriptEnvironment = setmetatable({
 })
 
 setfenv(1, scriptEnvironment)
-
