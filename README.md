@@ -1,8 +1,8 @@
 # Luarmor-Spy
-HttpSpy which works work on the whitelist service luarmor
+Fork of my [HttpSpy](https://github.com/NotDSF/HttpSpy) to work on scripts licensed with lurarmor
 
-## Alert
-This only works on **Synapse V3**
+## Drawbacks
+This only works on Synapse V3
 
 ## Script
 ```lua
