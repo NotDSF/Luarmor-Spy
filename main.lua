@@ -3,14 +3,14 @@ local originalSyn = originalGetgenv().syn
 local originalRconsoleprint = originalGetgenv().rconsoleprint
 
 if originalSyn then
-    originalGetgenv().syn = function() end
+    originalGetgenv().syn = nil
 end
 
 if originalRconsoleprint then
-    originalGetgenv().rconsoleprint = function() end
+    originalGetgenv().rconsoleprint = nil
 end
 
-local Serializer = loadstring(game:HttpGet("https://raw.githubusercontent.com/NotDSF/leopard/main/rbx/leopard-syn.lua"))();
+local Serializer = loadstring(game:HttpGet("https://raw.githubusercontent.com/NotDSF/leopard/main/rbx/leopard-syn.lua"))()
 local methods = {
     HttpGet = true,
     HttpGetAsync = true,
@@ -20,8 +20,8 @@ local methods = {
 }
 
 local function printf(...)
-    return originalRconsoleprint(string.format(...));
-end;
+    return originalRconsoleprint(string.format(...))
+end
 
 local randomName = function()
     return "fn_" .. tostring(math.random(100000, 999999))
@@ -50,16 +50,16 @@ local getgenvHook = setHidden(function()
     return customGetgenv
 end)
 
-local __namecall;
+local __namecall
 __namecall = hookmetamethod(game, "__namecall", newcclosure(function(self, ...)
-    local method = getnamecallmethod();
+    local method = getnamecallmethod()
 
     if methods[method] then
-        hidden[printFnName]("game:%s(%s)\n\n", method, hidden[SerializerName].FormatArguments(...));
-    end;
+        hidden[printFnName]("game:%s(%s)\n\n", method, hidden[SerializerName].FormatArguments(...))
+    end
 
-    return __namecall(self, ...);
-end));
+    return __namecall(self, ...)
+end))
 
 local getrawmetatableHook = setHidden(function(obj)
     if obj == syn.request then
@@ -70,20 +70,20 @@ local getrawmetatableHook = setHidden(function(obj)
 end)
 
 local synReqHookName = setHidden(function(req)
-    local mt = hidden[getrawmetatableHook](req);
-    local response = syn.oth.get_root_callback()(req);
+    local mt = hidden[getrawmetatableHook](req)
+    local response = syn.oth.get_root_callback()(req)
 
     if not mt then
-        hidden[printFnName]("syn.request(%s)\n\nResponse Data: %s\n\n", hidden[SerializerName].Serialize(req), hidden[SerializerName].Serialize(response));
-        return response;
-    end;
+        hidden[printFnName]("syn.request(%s)\n\nResponse Data: %s\n\n", hidden[SerializerName].Serialize(req), hidden[SerializerName].Serialize(response))
+        return response
+    end
 
-    hidden[printFnName]("Luarmor Internal\nResponse Data: %s\n\n", hidden[SerializerName].Serialize(response));
-    return response;
+    hidden[printFnName]("Luarmor Internal\nResponse Data: %s\n\n", hidden[SerializerName].Serialize(response))
+    return response
 end)
 
 if originalSyn then
-    syn.oth.hook(syn.request, hidden[synReqHookName]);
+    syn.oth.hook(syn.request, hidden[synReqHookName])
 end
 
 local getgcHook = setHidden(function()
@@ -113,7 +113,7 @@ local debugGetupvaluesHook = setHidden(function(fn)
 end)
 
 local loadstringHook = setHidden(function(code)
-    hidden[printFnName]("loadstring(%s)\n\n", code);
+    hidden[printFnName]("loadstring(%s)\n\n", code)
     return loadstring(code)
 end)
 
@@ -126,7 +126,7 @@ local debugGetinfoHook = setHidden(function(...)
 end)
 
 local requireHook = setHidden(function(module)
-    hidden[printFnName]("require(%s)\n\n", module);
+    hidden[printFnName]("require(%s)\n\n", module)
     return require(module)
 end)
 
