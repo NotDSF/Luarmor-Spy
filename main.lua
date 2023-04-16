@@ -13,16 +13,18 @@ end
 local Serializer = loadstring(game:HttpGet("path/to/Serializer.lua"))()
 
 local methods = {
-    HttpGet = true,
-    HttpGetAsync = true,
-    GetObjects = true,
-    HttpPost = true,
-    HttpPostAsync = true
+    httpget = true,
+    httpgetasync = true,
+    getobjects = true,
+    httppost = true,
+    httppostasync = true
 }
 
 local function printf(...)
     if originalRconsoleprint then
         return originalRconsoleprint(string.format(...))
+    else
+        print(string.format(...))
     end
 end
 
@@ -56,7 +58,7 @@ end)
 if hookmetamethod then
     local __namecall
     __namecall = hookmetamethod(game, "__namecall", newcclosure(function(self, ...)
-        local method = getnamecallmethod()
+        local method = string.lower(getnamecallmethod())
 
         if methods[method] then
             local serializedArgs = Serializer.FormatArguments(...)
@@ -78,13 +80,8 @@ local getrawmetatableHook = setHidden(function(obj)
 end)
 
 local synReqHookName = setHidden(function(req)
-    if not req or type(req) ~= "table" then
-        error("Invalid input for synReqHookName")
-    end
-
-    local mt = hidden[getrawmetatableHook](req)
-
-    if syn and syn.oth and syn.oth.get_root_callback then
+    if originalSyn and syn.oth and syn.oth.get_root_callback and req and type(req) == "table" then
+        local mt = hidden[getrawmetatableHook](req)
         local response = syn.oth.get_root_callback()(req)
 
         if not mt then
